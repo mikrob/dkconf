@@ -14,6 +14,10 @@ import (
 	"unicode"
 )
 
+const (
+	missingVarStr = "####### DKCONF : MISSING ENV VAR FOR GO TPL VALUE: %s, SHOULD BE %s #######"
+)
+
 var (
 	sourceTplFile = flag.String("s", "", "absolute path to the source template file")
 	targetFile    = flag.String("t", "", "absolute path to the target file generated")
@@ -82,11 +86,20 @@ func initializeTemplate() (*template.Template, error) {
 	return t, err
 }
 
+func SpaceMap(str string) string {
+	return strings.Map(func(r rune) rune {
+		if unicode.IsSpace(r) {
+			return -1
+		}
+		return r
+	}, str)
+}
+
 //extractFieldName list fields name in template
 func extractFieldName(s string) string {
-	re := regexp.MustCompile(`{{\.(.+?)}}`)
+	re := regexp.MustCompile(`{{\s*\.(.+?)\s*}}`)
 	match := re.FindStringSubmatch(s)
-	return match[1]
+	return SpaceMap(match[1])
 }
 
 //formatEnvVar format an env
@@ -132,7 +145,7 @@ func retrieveEnv(t *template.Template) (map[string]interface{}, []string) {
 				}
 			}
 		} else {
-			env[realField] = fmt.Sprintf("####### DKCONF : MISSING ENV VAR FOR GO TPL VALUE: %s, SHOULD BE %s ####### ", realField, formatedVar)
+			env[realField] = fmt.Sprintf(missingVarStr, realField, formatedVar)
 			//missingList = append(missingList, formatedVar)
 		}
 	}
@@ -148,29 +161,29 @@ func checkFileExists(path string) bool {
 }
 
 //parseTemplate parse the template with the given config map built in reading env var
-func parseTemplate(t *template.Template, config map[string]interface{}) {
+func parseTemplate(t *template.Template, config map[string]interface{}) error {
 	if *targetFile == "" { // if no target file is defined we output to stdout
 		f := bufio.NewWriter(os.Stdout)
 		defer f.Flush()
 		err := t.Execute(f, config)
 		if err != nil {
 			log.Print("execute: ", err)
-			os.Exit(3)
+			return err
 		}
 	} else { // if we have target file we write to it
 		f, err := os.Create(*targetFile)
 		if err != nil {
 			log.Println("create file: ", err)
-			os.Exit(3)
+			return err
 		}
 		err = t.Execute(f, config)
 		if err != nil {
 			log.Print("execute: ", err)
-			os.Exit(3)
+			return err
 		}
 		f.Close()
 	}
-
+	return nil
 }
 
 func main() {
