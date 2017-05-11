@@ -7,6 +7,17 @@ DkConf do it for you!
 
 ## Usage
 
+```bash
+#> dkconf -h
+Usage of ./dkconf-osx:
+  -p string
+    	env var prefix (default "APPCONF")
+  -s string
+    	absolute path to the source template file
+  -t string
+    	absolute path to the target file generated
+```
+
 dkconf as two mode :
 
 1. Write processed template directly to target file
