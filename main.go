@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	sourceTplFile = flag.String("s", "file.tpl", "absolute path to the source template file")
+	sourceTplFile = flag.String("s", "", "absolute path to the source template file")
 	targetFile    = flag.String("t", "", "absolute path to the target file generated")
 	envPrefix     = flag.String("p", "APPCONF", "env var prefix")
 )
