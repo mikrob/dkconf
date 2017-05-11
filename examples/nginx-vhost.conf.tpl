@@ -1,16 +1,21 @@
 server {
     listen      80;
     root        /app/web;
-    server_name site1.example.com site2.sub.example.com site3.sub.sub.example.com site3.com site5.site1.example.com;
+
+    server_name {{ range $idx, $elem := .SecondaryServersNames}}{{ $elem }} {{ end }};
     access_log  /var/log/nginx/access.log main;
     error_log   /var/log/nginx/error.log;
 
+    {{ .TrucBidule }}
+
+    {{ .Fqdn }}
+
     location / {
         if ($http_x_forwarded_proto != "https") {
-          return 301 https://www.example.com$request_uri;
+          return 301 https://www.{{ .Fqdn }}$request_uri;
         }
-        if ($host != "www.example.com") {
-          return 301 https://www.example.com$request_uri;
+        if ($host != "www.{{ .Fqdn }}") {
+          return 301 https://www.{{ .Fqdn }}$request_uri;
         }
         try_files $uri /app.php$is_args$args;
     }
@@ -26,6 +31,8 @@ server {
         internal;
         gzip                    on;
         gzip_comp_level         3;
+
+        {{ if .CorsEnabled }}
         if ($request_method = 'OPTIONS') {
           add_header 'Access-Control-Allow-Origin' '*' always;
           add_header 'Access-Control-Allow-Credentials' 'true' always;
@@ -44,7 +51,9 @@ server {
         add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS, DELETE, HEAD, PUT, PATCH' always;
         add_header 'Access-Control-Expose-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,X-Api-User,X-Api-Client,X-UA-Device-Category,X-UA-Device' always;
         add_header 'Access-Control-Allow-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,X-Api-User,X-Api-Client,X-UA-Device-Category,X-UA-Device' always;
-
+        {{ else }}
+           # this is a comment
+        {{ end }}
     }
 
 }
