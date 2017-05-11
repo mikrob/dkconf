@@ -14,7 +14,7 @@ server {
         if ($http_x_forwarded_proto != "https") {
           return 301 https://www.{{ .Fqdn }}$request_uri;
         }
-        if ($host != "www.{{ .Fqdn }}") {
+        if ($host != "www.{{ .MainServerName }}") {
           return 301 https://www.{{ .Fqdn }}$request_uri;
         }
         try_files $uri /app.php$is_args$args;

@@ -1,4 +1,4 @@
 export NGX_FQDN=tutu.com
 export NGX_CORS_ENABLED=true
-export NGX_MAIN_SERVER_NAME="pouet.com"
+export NGX_MAIN_SERVER_NAME="tutu.com"
 export NGX_SECONDARY_SERVERS_NAMES="tata.com,tutu.com,site1.toto.com,site3.sub.toto.com,test.pouet.com"
