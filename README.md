@@ -1,5 +1,7 @@
 # DKCONF a golang tool to templatize config file with environment variables
 
+[![Build Status](https://travis-ci.org/mikrob/dkconf.svg?branch=master)](https://travis-ci.org/mikrob/dkconf)
+
 Often when we make docker images, we would like to pass config from environment variables to config files.
 But there were no tools to do that.
 
