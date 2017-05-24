@@ -19,6 +19,11 @@ var (
 	testTemplate          = "{{.VarStandard}} items are made of {{.VarList}} are you ok ? {{.VarBool}} And ... {{.VarNotExists}}"
 	testTemplateBadSyntax = "{{.VarStandard} items are made of {.VarList}} are you ok ? {{.VarBool}} And ... {{.VarNotExists}}"
 	parsedTemplate        = "this_is_a_config_value items are made of [ab cd ef gh ij] are you ok ? true And ... ####### DKCONF : MISSING ENV VAR FOR GO TPL VALUE: VarNotExists, SHOULD BE APPCONF_VAR_NOT_EXISTS #######"
+
+	testTemplateIterable      = "{{ if is_iterable .VarList}}Yes, it is{{ else }}No, it is not{{ end }}"
+	parsedTemplateIterable    = "Yes, it is"
+	testTemplateNotIterable   = "{{ if is_iterable .VarStandard}}Yes, it is{{ else }}No, it is not{{ end }}"
+	parsedTemplateNotIterable = "No, it is not"
 )
 
 func TestRemoveDuplicates(t *testing.T) {
@@ -120,6 +125,25 @@ func TestParseTemplateWithBadSyntax(t *testing.T) {
 	_, errTpl := template.New("test").Parse(testTemplateBadSyntax)
 	if errTpl == nil {
 		t.Error("Error in template instanciation")
+	}
+}
+
+func TestParseTemplateIsIterable(t *testing.T) {
+	tmpl, _ := prepareTemplate(template.New("test2")).Parse(testTemplateIterable)
+	config := MakeConfig()
+	stdout := CaptureStdOut(parseTemplate, tmpl, config)
+
+	if stdout != parsedTemplateIterable {
+		t.Errorf("Generated template is not that what is waited, got : %s", stdout)
+	}
+}
+func TestParseTemplateIsNotIterable(t *testing.T) {
+	tmpl, _ := prepareTemplate(template.New("test2")).Parse(testTemplateNotIterable)
+	config := MakeConfig()
+	stdout := CaptureStdOut(parseTemplate, tmpl, config)
+
+	if stdout != parsedTemplateNotIterable {
+		t.Errorf("Generated template is not that what is waited, got : %s", stdout)
 	}
 }
 

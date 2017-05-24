@@ -24,10 +24,6 @@ var (
 	envPrefix     = flag.String("p", "APPCONF", "env var prefix")
 )
 
-type NginxConfig struct {
-	Fqdn string
-}
-
 //ListTemplFields List field in templates
 func ListTemplFields(t *template.Template) []string {
 	return listNodeFields(t.Tree.Root, nil)
@@ -78,12 +74,31 @@ func RemoveDuplicates(xs *[]string) {
 
 //initializeTemplate allow to initializeTemplate by creating template invocation and by listing field
 func initializeTemplate() (*template.Template, error) {
-	t, err := template.ParseFiles(*sourceTplFile)
+	var t *template.Template = template.New("tmpl")
+	var err error
+	prepareTemplate(t)
+	t, err = t.ParseFiles(*sourceTplFile)
 	if err != nil {
 		log.Print(err)
 		return nil, err
 	}
 	return t, err
+}
+
+func prepareTemplate(t * template.Template) (* template.Template) {
+	t.Funcs(template.FuncMap{
+		"is_iterable": func(v interface{}) bool {
+			switch v.(type) {
+			case string:
+				return false
+			case []string:
+				return true;
+			default:
+				return false
+			}
+		},
+	})
+	return t
 }
 
 func SpaceMap(str string) string {
