@@ -103,6 +103,66 @@ func prepareTemplate(t * template.Template) (* template.Template) {
 		"lower": strings.ToLower,
 		"ucwords": strings.Title,
 		"trim": strings.TrimSpace,
+		"split": func (optional_params ...string) []string {
+			var v, sep string
+			if (len(optional_params) >= 2) {
+				v = optional_params[0]
+				sep = optional_params[1]
+			} else if (len(optional_params) >= 1) {
+				v = optional_params[0]
+				sep = " "
+			}
+
+			return strings.Split(v, sep)
+		},
+		"contains": strings.Contains,
+		"comma_split": func (v string) []string {
+			var sep string = ","
+
+			return strings.Split(v, sep)
+		},
+		"dump": func (v interface{}) string {
+			return fmt.Sprintf("%+v", v)
+		},
+		"is_empty": func (v interface{}) bool {
+			vr := reflect.ValueOf(v)
+			switch vr.Kind() {
+			case reflect.String, reflect.Slice, reflect.Array, reflect.Map:
+				return 0 >= vr.Len()
+			case reflect.Invalid:
+				return true
+			case reflect.Bool:
+				return !v.(bool)
+			default:
+				return false
+			}
+		},
+		"is_not_empty": func (v interface{}) bool {
+			vr := reflect.ValueOf(v)
+			switch vr.Kind() {
+			case reflect.String, reflect.Slice, reflect.Array, reflect.Map:
+				return 0 < vr.Len()
+			case reflect.Invalid:
+				return false
+			case reflect.Bool:
+				return v.(bool)
+			default:
+				return true
+			}
+		},
+		"join": func (v interface{}, sep string) string {
+			vr := reflect.ValueOf(v)
+			switch vr.Kind() {
+			case reflect.Slice, reflect.Array, reflect.Map:
+				return strings.Join(v.([]string), sep)
+			case reflect.String:
+				return v.(string)
+			case reflect.Invalid, reflect.Bool:
+				return ""
+			default:
+				return ""
+			}
+		},
 		"replace": func(s string, old string, new string) string {
 			return strings.Replace(s, old, new, -1)
 		},
@@ -123,6 +183,19 @@ func prepareTemplate(t * template.Template) (* template.Template) {
 				return v
 			default:
 				return v
+			}
+		},
+		"length": func (v interface{}) int {
+			vr := reflect.ValueOf(v)
+			switch vr.Kind() {
+			case reflect.Invalid:
+				return 0
+			case reflect.String, reflect.Slice, reflect.Array, reflect.Map:
+				return vr.Len();
+			case reflect.Bool:
+				return 0
+			default:
+				return 0
 			}
 		},
 	})

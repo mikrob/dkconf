@@ -140,10 +140,8 @@ func TestParseTemplateWithBadSyntax(t *testing.T) {
 
 func TestParseTemplateIsIterable(t *testing.T) {
 	assertParsed(t, "{{ if is_iterable .VarList}}Yes, it is{{ else }}No, it is not{{ end }}", "Yes, it is")
-}
-
-func TestParseTemplateWithIsIterableAndIterableVariable(t *testing.T) {
 	assertParsed(t, "{{ if is_iterable .VarStandard}}Yes, it is{{ else }}No, it is not{{ end }}", "No, it is not")
+	assertParsed(t, "{{ if \"\" | is_iterable }}Yes, it is{{ else }}No, it is not{{ end }}", "No, it is not")
 }
 
 func TestParseTemplateWithUpper(t *testing.T) {
@@ -191,12 +189,63 @@ func TestParseTemplateWithDefaultAndMissingEnv(t *testing.T) {
 	assertParsed(t, "{{ default .MyMissingEnvVar \"Hello World ;-)\" }}", "Hello World ;-)")
 }
 
+func TestParseTemplateWithJoin(t *testing.T) {
+	assertParsed(t, "{{ join .VarList \":\" }}", "ab:cd:ef:gh:ij")
+	assertParsed(t, "{{ join .VarList \"/\" }}", "ab/cd/ef/gh/ij")
+	assertParsed(t, "{{ join .VarList \" - \" }}", "ab - cd - ef - gh - ij")
+	assertParsed(t, "{{ join \"\" \",\" }}", "")
+	assertParsed(t, "{{ join \"  \" \",\" }}", "  ")
+	assertParsed(t, "{{ join .MyMissingVar \",\" }}", "")
+}
+
+func TestParseTemplateWithContains(t *testing.T) {
+	assertParsed(t, "{{ if contains .VarStandard \"this\" }}YES{{else}}NO{{end}}", "YES")
+	assertParsed(t, "{{ if contains .VarStandard \"00\" }}YES{{else}}NO{{end}}", "NO")
+}
+
+func TestParseTemplateWithIsEmpty(t *testing.T) {
+	assertParsed(t, "{{ if .VarStandard | is_empty }}YES{{else}}NO{{end}}", "NO")
+	assertParsed(t, "{{ if \"\" | is_empty }}YES{{else}}NO{{end}}", "YES")
+}
+
+func TestParseTemplateWithIsNotEmpty(t *testing.T) {
+	assertParsed(t, "{{ if .VarStandard | is_not_empty }}YES{{else}}NO{{end}}", "YES")
+	assertParsed(t, "{{ if \"\" | is_not_empty }}YES{{else}}NO{{end}}", "NO")
+}
+
+func TestParseTemplateWithDump(t *testing.T) {
+	assertParsed(t, "{{ \"\" | dump }}", "")
+	assertParsed(t, "{{ .VarList | dump }}", "[ab cd ef gh ij]")
+	assertParsed(t, "{{ .VarStandard | dump }}", "this_is_a_config_value")
+}
+
+func TestParseTemplateWithLength(t *testing.T) {
+	assertParsed(t, "{{ .VarList | length }} AB", "5 AB")
+	assertParsed(t, "{{ \"abcd\" | length }} AB", "4 AB")
+	assertParsed(t, "{{ \"\" | length }} AB", "0 AB")
+	assertParsed(t, "{{ \" \" | length }} AB", "1 AB")
+	assertParsed(t, "{{ .VarStandard | length }} AB", "22 AB")
+	assertParsed(t, "{{ if gt (.VarStandard | length) 30}}YES{{else}}NO{{end}}", "NO")
+	assertParsed(t, "{{ if gt (.VarStandard | length) 20}}YES{{else}}NO{{end}}", "YES")
+}
+
+func TestParseTemplateWithSplit(t *testing.T) {
+	assertParsed(t, "{{ range $idx,$elem := (.VarStandard | split) }}Index: {{$idx}}, Value: {{$elem}}. {{end}}", "Index: 0, Value: this_is_a_config_value. ")
+	assertParsed(t, "{{ range $idx,$elem := (split .VarStandard \"_\") }}Index: {{$idx}}, Value: {{$elem}}. {{end}}", "Index: 0, Value: this. Index: 1, Value: is. Index: 2, Value: a. Index: 3, Value: config. Index: 4, Value: value. ")
+	assertParsed(t, "{{ range $idx,$elem := (split \"abcd\" \",\") }}Index: {{$idx}}, Value: {{$elem}}. {{end}}", "Index: 0, Value: abcd. ")
+}
+
+func TestParseTemplateWithCommaSplit(t *testing.T) {
+	assertParsed(t, "{{ range $idx,$elem := (.VarStandard | comma_split) }}Index: {{$idx}}, Value: {{$elem}}. {{end}}", "Index: 0, Value: this_is_a_config_value. ")
+	assertParsed(t, "{{ range $idx,$elem := (\"a,b,c\" | comma_split) }}Index: {{$idx}}, Value: {{$elem}}. {{end}}", "Index: 0, Value: a. Index: 1, Value: b. Index: 2, Value: c. ")
+}
+
 func assertParsed(t *testing.T, tpl string, parsed string) {
 	tmpl, _ := prepareTemplate(template.New("test")).Parse(tpl)
 	config := MakeConfig()
 	stdout := CaptureStdOut(parseTemplate, tmpl, config)
 
 	if stdout != parsed {
-		t.Errorf("Generated template is not that what is waited, got : %s", stdout)
+		t.Errorf("Assertion failed for [%s] is parsed into [%s], found: [%s]", tpl, parsed, stdout)
 	}
 }
