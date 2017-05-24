@@ -19,11 +19,6 @@ var (
 	testTemplate          = "{{.VarStandard}} items are made of {{.VarList}} are you ok ? {{.VarBool}} And ... {{.VarNotExists}}"
 	testTemplateBadSyntax = "{{.VarStandard} items are made of {.VarList}} are you ok ? {{.VarBool}} And ... {{.VarNotExists}}"
 	parsedTemplate        = "this_is_a_config_value items are made of [ab cd ef gh ij] are you ok ? true And ... ####### DKCONF : MISSING ENV VAR FOR GO TPL VALUE: VarNotExists, SHOULD BE APPCONF_VAR_NOT_EXISTS #######"
-
-	testTemplateIterable      = "{{ if is_iterable .VarList}}Yes, it is{{ else }}No, it is not{{ end }}"
-	parsedTemplateIterable    = "Yes, it is"
-	testTemplateNotIterable   = "{{ if is_iterable .VarStandard}}Yes, it is{{ else }}No, it is not{{ end }}"
-	parsedTemplateNotIterable = "No, it is not"
 )
 
 func TestRemoveDuplicates(t *testing.T) {
@@ -111,6 +106,21 @@ func CaptureStdOut(function ParseFunc, t2 *template.Template, config2 map[string
 	return string(out)
 }
 
+func TestInitializeTemplate(t *testing.T) {
+	f, _ := os.Create("/tmp/tpl.tpl")
+	w := bufio.NewWriter(f)
+	w.WriteString(testTemplate)
+	*sourceTplFile = "/tmp/tpl.tpl"
+	tpl, err := initializeTemplate()
+	if tpl == nil {
+		t.Error("Template should not be nil")
+	}
+	if err != nil {
+		t.Error("Err should be nil")
+	}
+
+}
+
 func TestParseTemplate(t *testing.T) {
 	tmpl, _ := prepareTemplate(template.New("test")).Parse(testTemplate)
 	config := MakeConfig()
@@ -129,35 +139,64 @@ func TestParseTemplateWithBadSyntax(t *testing.T) {
 }
 
 func TestParseTemplateIsIterable(t *testing.T) {
-	tmpl, _ := prepareTemplate(template.New("test2")).Parse(testTemplateIterable)
+	assertParsed(t, "{{ if is_iterable .VarList}}Yes, it is{{ else }}No, it is not{{ end }}", "Yes, it is")
+}
+
+func TestParseTemplateWithIsIterableAndIterableVariable(t *testing.T) {
+	assertParsed(t, "{{ if is_iterable .VarStandard}}Yes, it is{{ else }}No, it is not{{ end }}", "No, it is not")
+}
+
+func TestParseTemplateWithUpper(t *testing.T) {
+	assertParsed(t, "{{ \"hello\" | upper }}", "HELLO")
+	assertParsed(t, "{{ \"hELLO\" | upper }}", "HELLO")
+	assertParsed(t, "{{ \"HELLO\" | upper }}", "HELLO")
+	assertParsed(t, "{{ \"hello 1\" | upper }}", "HELLO 1")
+}
+
+func TestParseTemplateWithTrim(t *testing.T) {
+	assertParsed(t, "{{ \" \" | trim }}", "")
+	assertParsed(t, "{{ \" abc \" | trim }}", "abc")
+	assertParsed(t, "{{ \" abc\" | trim }}", "abc")
+	assertParsed(t, "{{ \"abc \" | trim }}", "abc")
+}
+
+func TestParseTemplateWithLower(t *testing.T) {
+	assertParsed(t, "{{ \"HellO\" | lower }}", "hello")
+	assertParsed(t, "{{ \"hELLo\" | lower }}", "hello")
+	assertParsed(t, "{{ \"hello\" | lower }}", "hello")
+	assertParsed(t, "{{ \"HELLO 1\" | lower }}", "hello 1")
+}
+
+func TestParseTemplateWithCombinedUpperAndLower(t *testing.T) {
+	assertParsed(t, "{{ \"HellO\" | lower | upper }}", "HELLO")
+}
+
+func TestParseTemplateWithReplace(t *testing.T) {
+	assertParsed(t, "{{ replace \"abcde ab tab\" \"ab\" \"xy\" }}", "xycde xy txy")
+}
+
+func TestParseTemplateWithUcwords(t *testing.T) {
+	assertParsed(t, "{{ \"wORD1 woRd2 Word3 word4 worD5 WORD6\" | ucwords }}", "WORD1 WoRd2 Word3 Word4 WorD5 WORD6")
+}
+
+func TestParseTemplateWithDefaultAndNonEmptyValue(t *testing.T) {
+	assertParsed(t, "{{ default \"hello\" \"Hello World ;-)\" }}", "hello")
+}
+
+func TestParseTemplateWithDefaultAndEmptyValue(t *testing.T) {
+	assertParsed(t, "{{ default \"\" \"Hello World ;-)\" }}", "Hello World ;-)")
+}
+
+func TestParseTemplateWithDefaultAndMissingEnv(t *testing.T) {
+	assertParsed(t, "{{ default .MyMissingEnvVar \"Hello World ;-)\" }}", "Hello World ;-)")
+}
+
+func assertParsed(t *testing.T, tpl string, parsed string) {
+	tmpl, _ := prepareTemplate(template.New("test")).Parse(tpl)
 	config := MakeConfig()
 	stdout := CaptureStdOut(parseTemplate, tmpl, config)
 
-	if stdout != parsedTemplateIterable {
+	if stdout != parsed {
 		t.Errorf("Generated template is not that what is waited, got : %s", stdout)
 	}
-}
-func TestParseTemplateIsNotIterable(t *testing.T) {
-	tmpl, _ := prepareTemplate(template.New("test2")).Parse(testTemplateNotIterable)
-	config := MakeConfig()
-	stdout := CaptureStdOut(parseTemplate, tmpl, config)
-
-	if stdout != parsedTemplateNotIterable {
-		t.Errorf("Generated template is not that what is waited, got : %s", stdout)
-	}
-}
-
-func TestInitializeTemplate(t *testing.T) {
-	f, _ := os.Create("/tmp/tpl.tpl")
-	w := bufio.NewWriter(f)
-	w.WriteString(testTemplate)
-	*sourceTplFile = "/tmp/tpl.tpl"
-	tpl, err := initializeTemplate()
-	if tpl == nil {
-		t.Error("Template should not be nil")
-	}
-	if err != nil {
-		t.Error("Err should be nil")
-	}
-
 }

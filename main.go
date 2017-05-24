@@ -12,6 +12,7 @@ import (
 	"text/template"
 	"text/template/parse"
 	"unicode"
+	"reflect"
 )
 
 const (
@@ -88,13 +89,40 @@ func initializeTemplate() (*template.Template, error) {
 func prepareTemplate(t * template.Template) (* template.Template) {
 	t.Funcs(template.FuncMap{
 		"is_iterable": func(v interface{}) bool {
-			switch v.(type) {
-			case string:
+			vr := reflect.ValueOf(v)
+			switch vr.Kind() {
+			case reflect.String, reflect.Invalid, reflect.Bool:
 				return false
-			case []string:
-				return true;
+			case reflect.Slice, reflect.Array, reflect.Map:
+				return true
 			default:
 				return false
+			}
+		},
+		"upper": strings.ToUpper,
+		"lower": strings.ToLower,
+		"ucwords": strings.Title,
+		"trim": strings.TrimSpace,
+		"replace": func(s string, old string, new string) string {
+			return strings.Replace(s, old, new, -1)
+		},
+		"default": func (v interface{}, d interface{}) interface{} {
+			vr := reflect.ValueOf(v)
+			switch vr.Kind() {
+			case reflect.Invalid:
+				return d
+			case reflect.String, reflect.Slice, reflect.Array, reflect.Map:
+				if vr.Len() == 0 {
+					return d
+				}
+				return v
+			case reflect.Bool:
+				if !vr.Bool() {
+					return d
+				}
+				return v
+			default:
+				return v
 			}
 		},
 	})
