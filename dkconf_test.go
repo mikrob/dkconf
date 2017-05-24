@@ -78,7 +78,7 @@ func TestRetrieveEnv(t *testing.T) {
 	os.Setenv("APPCONF_VAR_LIST", varList)
 	os.Setenv("APPCONF_VAR_BOOL", varBool)
 
-	tmpl, _ := template.New("test").Parse(testTemplate)
+	tmpl, _ := prepareTemplate(template.New("test")).Parse(testTemplate)
 	config, _ := retrieveEnv(tmpl)
 
 	wantedMap := MakeConfig()
@@ -112,7 +112,7 @@ func CaptureStdOut(function ParseFunc, t2 *template.Template, config2 map[string
 }
 
 func TestParseTemplate(t *testing.T) {
-	tmpl, _ := template.New("test").Parse(testTemplate)
+	tmpl, _ := prepareTemplate(template.New("test")).Parse(testTemplate)
 	config := MakeConfig()
 	stdout := CaptureStdOut(parseTemplate, tmpl, config)
 
@@ -122,7 +122,7 @@ func TestParseTemplate(t *testing.T) {
 }
 
 func TestParseTemplateWithBadSyntax(t *testing.T) {
-	_, errTpl := template.New("test").Parse(testTemplateBadSyntax)
+	_, errTpl := prepareTemplate(template.New("test")).Parse(testTemplateBadSyntax)
 	if errTpl == nil {
 		t.Error("Error in template instanciation")
 	}
