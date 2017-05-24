@@ -217,7 +217,7 @@ func SpaceMap(str string) string {
 
 //extractFieldName list fields name in template
 func extractFieldName(s string) string {
-	re := regexp.MustCompile(`{{\s*\.(.+?)\s*}}`)
+	re := regexp.MustCompile(`{{\s*[^\.]*\.([^\."]+).*\s*}}`)
 	match := re.FindStringSubmatch(s)
 	if (0 < len(match)) {
 		return SpaceMap(match[1])
