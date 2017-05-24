@@ -1,0 +1,5 @@
+HELLO !
+
+HELLO WORLD !
+
+this+is+a+string+with+spaces+replaced+by+plus

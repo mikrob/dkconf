@@ -13,6 +13,7 @@ import (
 	"text/template/parse"
 	"unicode"
 	"reflect"
+	"path/filepath"
 )
 
 const (
@@ -75,7 +76,7 @@ func RemoveDuplicates(xs *[]string) {
 
 //initializeTemplate allow to initializeTemplate by creating template invocation and by listing field
 func initializeTemplate() (*template.Template, error) {
-	var t *template.Template = template.New("tmpl")
+	var t *template.Template = template.New(filepath.Base(*sourceTplFile))
 	var err error
 	prepareTemplate(t)
 	t, err = t.ParseFiles(*sourceTplFile)
@@ -114,6 +115,9 @@ func prepareTemplate(t * template.Template) (* template.Template) {
 			}
 
 			return strings.Split(v, sep)
+		},
+		"concat": func (optional_params ...string) string {
+			return strings.Join(optional_params,"")
 		},
 		"contains": strings.Contains,
 		"comma_split": func (v string) []string {
@@ -215,7 +219,10 @@ func SpaceMap(str string) string {
 func extractFieldName(s string) string {
 	re := regexp.MustCompile(`{{\s*\.(.+?)\s*}}`)
 	match := re.FindStringSubmatch(s)
-	return SpaceMap(match[1])
+	if (0 < len(match)) {
+		return SpaceMap(match[1])
+	}
+	return ""
 }
 
 //formatEnvVar format an env

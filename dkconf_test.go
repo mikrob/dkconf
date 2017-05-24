@@ -189,6 +189,16 @@ func TestParseTemplateWithDefaultAndMissingEnv(t *testing.T) {
 	assertParsed(t, "{{ default .MyMissingEnvVar \"Hello World ;-)\" }}", "Hello World ;-)")
 }
 
+func TestParseTemplateWithConcat(t *testing.T) {
+	assertParsed(t, "{{ concat \"a\" \"b\" }}", "ab")
+	assertParsed(t, "{{ concat \"\" \"b\" }}", "b")
+	assertParsed(t, "{{ concat \"\" \"\" }}", "")
+	assertParsed(t, "{{ concat \"\" \" \" \"test\" }}", " test")
+	assertParsed(t, "{{ concat }}", "")
+	assertParsed(t, "{{ concat \"abc\" }}", "abc")
+	assertParsed(t, "{{ concat .VarStandard \" \" \"test\" }}", "this_is_a_config_value test")
+}
+
 func TestParseTemplateWithJoin(t *testing.T) {
 	assertParsed(t, "{{ join .VarList \":\" }}", "ab:cd:ef:gh:ij")
 	assertParsed(t, "{{ join .VarList \"/\" }}", "ab/cd/ef/gh/ij")
