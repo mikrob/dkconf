@@ -208,6 +208,74 @@ func TestParseTemplateWithJoin(t *testing.T) {
 	assertParsed(t, "{{ join .MyMissingVar \",\" }}", "")
 }
 
+func TestParseTemplateWithSlugify(t *testing.T) {
+	assertParsed(t, "{{ \"abcd\" | slugify }}", "abcd")
+	assertParsed(t, "{{ \"Abcd e\" | slugify }}", "abcd-e")
+	assertParsed(t, "{{ \"Abcd Efg - : K@\" | slugify }}", "abcd-efg-k")
+}
+
+func TestParseTemplateWithSnakize(t *testing.T) {
+	assertParsed(t, "{{ \"abcd\" | snakize }}", "abcd")
+	assertParsed(t, "{{ \"Abcd e\" | snakize }}", "abcd_e")
+	assertParsed(t, "{{ \"Abcd Efg - : K@\" | snakize }}", "abcd_efg_k")
+}
+
+func TestParseTemplateWithSprintf(t *testing.T) {
+	assertParsed(t, "{{ sprintf \"hello %s\" \"world\" }}", "hello world")
+	assertParsed(t, "{{ sprintf \"hello\" }}", "hello")
+	assertParsed(t, "{{ sprintf \"hello %s %s\" \"42\" \"worlds\" }}", "hello 42 worlds")
+}
+
+func TestParseTemplateWithRegexpReplace(t *testing.T) {
+	assertParsed(t, "{{ regexp_replace \"abcd\" \"a\" \"z\" }}", "zbcd")
+	assertParsed(t, "{{ regexp_replace \"abcd\" \"[ac]\" \"z\" }}", "zbzd")
+	assertParsed(t, "{{ regexp_replace \"abcd\" \"[a-z]\" \"1\" }}", "1111")
+	assertParsed(t, "{{ regexp_replace \"abcd\" \"[a-c]\" \"1\" }}", "111d")
+	assertParsed(t, "{{ regexp_replace \"a b c  d\" \"[ ]+\" \"-\" }}", "a-b-c-d")
+}
+
+func TestParseTemplateWithMatch(t *testing.T) {
+	assertParsed(t, "{{ if match \"abcd\" \"a\" }}YES{{else}}NO{{end}}", "YES")
+	assertParsed(t, "{{ if match \"abcd\" \"a.c.\" }}YES{{else}}NO{{end}}", "YES")
+	assertParsed(t, "{{ if match \"abcd\" \"z\" }}YES{{else}}NO{{end}}", "NO")
+}
+
+func TestParseTemplateWithIsEnabled(t *testing.T) {
+	assertParsed(t, "{{ if \"abcd\" | is_enabled }}YES{{else}}NO{{end}}", "YES")
+	assertParsed(t, "{{ if \"0\" | is_enabled }}YES{{else}}NO{{end}}", "NO")
+	assertParsed(t, "{{ if \"1\" | is_enabled }}YES{{else}}NO{{end}}", "YES")
+	assertParsed(t, "{{ if 1 | is_enabled }}YES{{else}}NO{{end}}", "YES")
+	assertParsed(t, "{{ if 0 | is_enabled }}YES{{else}}NO{{end}}", "NO")
+	assertParsed(t, "{{ if \"\" | is_enabled }}YES{{else}}NO{{end}}", "NO")
+	assertParsed(t, "{{ if false | is_enabled }}YES{{else}}NO{{end}}", "NO")
+	assertParsed(t, "{{ if false | is_enabled }}YES{{else}}NO{{end}}", "NO")
+	assertParsed(t, "{{ if true | is_enabled }}YES{{else}}NO{{end}}", "YES")
+}
+
+func TestParseTemplateWithUnderscore(t *testing.T) {
+	assertParsed(t, "{{ \"abcd\" | underscore }}", "abcd")
+	assertParsed(t, "{{ \"AbCd\" | underscore }}", "ab_cd")
+	assertParsed(t, "{{ \"Ab Cd e\" | underscore }}", "ab_cd_e")
+}
+
+func TestParseTemplateWithEnvname(t *testing.T) {
+	assertParsed(t, "{{ \"abcd\" | envname }}", "ABCD")
+	assertParsed(t, "{{ \"AbCd\" | envname }}", "ABCD")
+	assertParsed(t, "{{ \"Ab.Cd\" | envname }}", "AB_CD")
+	assertParsed(t, "{{ \"Ab Cd e\" | envname }}", "AB_CD_E")
+	assertParsed(t, "{{ \"Ab Cd  e @\" | envname }}", "AB_CD_E")
+	assertParsed(t, "{{ \"THIS IS AN ENV\" | envname }}", "THIS_IS_AN_ENV")
+	assertParsed(t, "{{ \"THIS   IS AN ENV\" | envname }}", "THIS_IS_AN_ENV")
+}
+
+func TestParseTemplateWithTitle(t *testing.T) {
+	assertParsed(t, "{{ \"abcd\" | title }}", "Abcd")
+	assertParsed(t, "{{ \"AbCd\" | title }}", "AbCd")
+	assertParsed(t, "{{ \"Ab Cd e\" | title }}", "Ab Cd E")
+	assertParsed(t, "{{ \"Ab Cd  e @\" | title }}", "Ab Cd  E @")
+	assertParsed(t, "{{ \"THIS IS AN ENV\" | title }}", "THIS IS AN ENV")
+}
+
 func TestParseTemplateWithContains(t *testing.T) {
 	assertParsed(t, "{{ if contains .VarStandard \"this\" }}YES{{else}}NO{{end}}", "YES")
 	assertParsed(t, "{{ if contains .VarStandard \"00\" }}YES{{else}}NO{{end}}", "NO")

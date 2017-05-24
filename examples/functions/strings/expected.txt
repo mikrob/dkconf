@@ -3,3 +3,5 @@ HELLO !
 HELLO WORLD !
 
 this+is+a+string+with+spaces+replaced+by+plus
+
+If you want to slugify a string, just use `slugify` function (the-slug-result0)
