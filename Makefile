@@ -16,3 +16,9 @@ get:
 
 examples:
 	-@$(foreach test,$(EXAMPLES),(echo "\033[0;33mdkconf < ${test}\033[0m" && (source $(test)/.env && echo "\033[0;31m\c" && go run main.go -p TEST -s $(test)/template.tmpl | diff $(test)/expected.txt -) ; echo "\033[0m\c"); )
+
+examples-linux:
+	-@$(foreach test,$(EXAMPLES),(echo "\033[0;33mdkconf < ${test}\033[0m" && (source $(test)/.env && echo "\033[0;31m\c" && ./dkconf-linux -p TEST -s $(test)/template.tmpl | diff $(test)/expected.txt -) ; echo "\033[0m\c"); )
+
+examples-osx:
+	-@$(foreach test,$(EXAMPLES),(echo "\033[0;33mdkconf < ${test}\033[0m" && (source $(test)/.env && echo "\033[0;31m\c" && ./dkconf-osx -p TEST -s $(test)/template.tmpl | diff $(test)/expected.txt -) ; echo "\033[0m\c"); )
