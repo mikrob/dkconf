@@ -1,0 +1,17 @@
+{{ "A"|env }}
+{{ "B"|env }}
+{{ "B_C"|env }}
+{{ "DE_FG_H"|env }}
+{{ "a  "|env }}
+{{ "b c/"|env }}
+{{ "de-fg-h"|env }}
+{{ range $idx, $elem := "l"|env|comma_split }}
+- {{$elem}}{{end}}
+{{ range $idx, $elem := (default ("missing"|env) "z,y") | comma_split }}
+- {{$elem}}{{end}}
+{{ range $idx, $elem := (default ("l"|env) "z,y") | comma_split }}
+- {{$elem}}{{end}}
+{{ range $item := "l"|env_list }}
+- {{$item}}{{end}}
+
+{{ "external_variable"|global_env }}

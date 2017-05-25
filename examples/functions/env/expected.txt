@@ -1,0 +1,27 @@
+1
+<no value>
+abcd
+this is a line
+1
+abcd
+this is a line
+
+- a
+- b
+- c
+- d
+
+- z
+- y
+
+- a
+- b
+- c
+- d
+
+- a
+- b
+- c
+- d
+
+we were able to retrieve an external variable value

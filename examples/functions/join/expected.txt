@@ -1,0 +1,3 @@
+* List with `join`
+
+a - b - c - d - e

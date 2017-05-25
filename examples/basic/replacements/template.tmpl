@@ -1,0 +1,16 @@
+Hello {{ .FirstName }} !
+
+Your name is {{ .LastName }}, and your age is {{ .Age }}
+
+See you !
+
+(unknown variable : {{ .UnknownVariable }})
+
+All this env query or equivalent :
+
+- {{ envname "THIS IS AN env" }}
+- {{ envname "this is an env" }}
+- {{ envname "This is an ENV" }}
+- {{ envname "this_is_an_env" }}
+- {{ envname "THIS_IS_AN_ENV" }}
+- {{ envname "This Is An Env" }}
